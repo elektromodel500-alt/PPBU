@@ -1,0 +1,20 @@
+from datetime import datetime, date, time, timedelta
+
+d = date(2024, 12, 31)
+print(d)
+t = time (12, 30, 59)
+print(t)
+
+dt = datetime.combine(d, t)
+print(dt, type(dt))
+d= date.today()
+dt = datetime.now().replace(microsecond=0)
+print(dt, time())
+dt = dt.replace(year=2025, month=7, day=31)
+dtt = input('Введите дату (дд.мм.гггг: ')
+datte = datetime.strftime(dtt, '%Y-%m-%d')
+print(datte)
+print(type(datte))
+print(datte.strftime('%Y-%m-%d'))
+dtt = dt.timetuple()
+print(dtt)
