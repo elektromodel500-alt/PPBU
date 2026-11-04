@@ -22,33 +22,42 @@ def update_base_label(event):
 
 
 def exchange():
-    target_code = target_combobox.get().strip()
-    base_code = base_combobox.get().strip()
-    # code = entry.get().upper().strip()
-    # code = combobox.get()
-    if target_code and base_code:
-        try:
+    try:
+        pairs = ','.join(currencies.keys())
 
-            response = requests.get(f'https://api.kraken.com/0/public/Ticker?pair={base_code}')
-            response.raise_for_status()
-            data = response.json()
-            if data['error']:
-                mb.showerror('Ошибка', data['error'])
-                return
-            ticker = next(iter(data['result'].values()))
-            exchange_rate = float(ticker['c'][0])
-            base = currencies[base_code]
-                #target = currencies[target_code]
-                # currency_name = currencies[code]
-            mb.showinfo('Курс обмена криптовалют',
-                            f'Курс: {exchange_rate:.2f} USD за 1 {base}')
+        response = requests.get(
+            f'https://api.kraken.com/0/public/Ticker?pair={pairs}',
+            timeout=10
+        )
 
-        except Exception as er:
-            mb.showerror('Ошибка', str(er))
+        response.raise_for_status()
+        data = response.json()
 
-    else:
-        mb.showwarning('Внимание', 'Введите код валюты')
+        if data['error']:
+            mb.showerror('Ошибка', str(data['error']))
+            return
 
+        result = data['result']
+
+        text = ''
+
+        for pair, name in currencies.items():
+            ticker = next(
+                (value for key, value in result.items()
+                 if key == pair or key.endswith(pair)),
+                None
+            )
+
+            if ticker:
+                price = float(ticker['c'][0])
+                text += f'{name}: {price:,.2f} USD\n'
+            else:
+                text += f'{name}: курс недоступен\n'
+
+        mb.showinfo('Курсы криптовалют', text)
+
+    except Exception as er:
+        mb.showerror('Ошибка', str(er))
 
 
 currencies = {
