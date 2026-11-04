@@ -23,36 +23,28 @@ def update_base_label(event):
 
 def exchange():
     try:
-        pairs = ','.join(currencies.keys())
-
-        response = requests.get(
-            f'https://api.kraken.com/0/public/Ticker?pair={pairs}',
-            timeout=10
-        )
-
-        response.raise_for_status()
-        data = response.json()
-
-        if data['error']:
-            mb.showerror('Ошибка', str(data['error']))
-            return
-
-        result = data['result']
-
         text = ''
 
         for pair, name in currencies.items():
-            ticker = next(
-                (value for key, value in result.items()
-                 if key == pair or key.endswith(pair)),
-                None
+
+            response = requests.get(
+                'https://api.kraken.com/0/public/Ticker',
+                params={'pair': pair},
+                timeout=10
             )
 
-            if ticker:
-                price = float(ticker['c'][0])
-                text += f'{name}: {price:,.2f} USD\n'
-            else:
+            response.raise_for_status()
+            data = response.json()
+
+            if data['error'] or not data['result']:
                 text += f'{name}: курс недоступен\n'
+                continue
+
+            ticker = next(iter(data['result'].values()))
+
+            price = float(ticker['c'][0])
+
+            text += f'{name}: {price:,.2f} USD\n'
 
         mb.showinfo('Курсы криптовалют', text)
 
