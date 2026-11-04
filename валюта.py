@@ -2,21 +2,25 @@ from tkinter import *
 from tkinter import messagebox as mb
 from tkinter import ttk
 import requests
-import json
-import pprint
 
 #from bottle import response
 
 
-
 def update_base_label(event):
-    code = base_combobox.get()
-    name = currencies[code]
+    name = base_combobox.get()
     base_label.config(text=name)
 
 
+
+
+
 def exchange():
-    base_code = base_combobox.get().strip()
+    base_name = base_combobox.get().strip()
+    base_code = next(
+        (code for code, name in currencies.items()
+         if name == base_name),
+        ''
+    )
 
     if base_code:
         try:
@@ -64,14 +68,14 @@ currencies = {
 
 
 root = Tk()
-root.title('Курс обмена валют USD')
+root.title('Курс обмена криптовалют Kraken')
 root.geometry('360x180')
 
 Label(root, text='Выберите криптовалюту').pack()
 
 base_combobox = ttk.Combobox(
     root,
-    values=list(currencies.keys()),
+    values=list(currencies.values()),
     state='readonly'
 )
 base_combobox.pack(pady=5)
