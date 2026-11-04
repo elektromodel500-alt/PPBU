@@ -8,12 +8,6 @@ import pprint
 #from bottle import response
 
 
-def update_currency_label(event):
-    code = target_combobox.get()
-    # code = combobox.get()
-    name = currencies[code]
-    target_label.config(text=name)
-
 
 def update_base_label(event):
     code = base_combobox.get()
@@ -22,14 +16,13 @@ def update_base_label(event):
 
 
 def exchange():
-    try:
-        text = ''
+    base_code = base_combobox.get().strip()
 
-        for pair, name in currencies.items():
-
+    if base_code:
+        try:
             response = requests.get(
                 'https://api.kraken.com/0/public/Ticker',
-                params={'pair': pair},
+                params={'pair': base_code},
                 timeout=10
             )
 
@@ -37,19 +30,25 @@ def exchange():
             data = response.json()
 
             if data['error'] or not data['result']:
-                text += f'{name}: курс недоступен\n'
-                continue
+                mb.showerror('Ошибка', 'Курс не найден')
+                return
 
             ticker = next(iter(data['result'].values()))
-
             price = float(ticker['c'][0])
 
-            text += f'{name}: {price:,.2f} USD\n'
+            base = currencies[base_code]
 
-        mb.showinfo('Курсы криптовалют', text)
+            mb.showinfo(
+                'Курс криптовалюты',
+                f'{base}\n'
+                f'Стоимость: {price:,.2f} USD'
+            )
 
-    except Exception as er:
-        mb.showerror('Ошибка', str(er))
+        except Exception as er:
+            mb.showerror('Ошибка', str(er))
+
+    else:
+        mb.showwarning('Внимание', 'Выберите криптовалюту')
 
 
 currencies = {
@@ -68,27 +67,31 @@ root = Tk()
 root.title('Курс обмена валют USD')
 root.geometry('360x180')
 
-Label(root, text='Базовая валюта').pack()
-base_combobox = ttk.Combobox(root, values=list(currencies.keys()))
-base_combobox.pack(pady=3, padx=10)
-base_combobox.bind('<<ComboboxSelected>>', update_base_label)
-base_label = ttk.Label()
-base_label.pack()
+Label(root, text='Выберите криптовалюту').pack()
 
-Label(root, text='Целевая валюта' ).pack(padx=10)
-# popular_currencies = ['EUR', 'JPY', 'GBP', 'AUD', 'CAD', 'CHF',
-#                       'CNY', 'RUB', 'KZT', 'UZS']
-target_combobox = ttk.Combobox(root, values=list(currencies.keys()))
-target_combobox.pack(pady=3, padx=10)
-target_combobox.bind('<<ComboboxSelected>>', update_currency_label)
+base_combobox = ttk.Combobox(
+    root,
+    values=list(currencies.keys()),
+    state='readonly'
+)
+base_combobox.pack(pady=5)
 
-target_label = ttk.Label()
-target_label.pack()
-# entry = Entry(root)
-# entry.pack()
+base_combobox.bind(
+    '<<ComboboxSelected>>',
+    update_base_label
+)
 
-Button(text='Получить курс обмена к доллару',
-       command=exchange).pack(pady=10, padx=10)
+base_label = ttk.Label(root, text='')
+base_label.pack(pady=5)
+
+Button(
+    root,
+    text='Получить курс к USD',
+    command=exchange
+).pack(pady=10)
+
+
+
 
 
 root.mainloop()
