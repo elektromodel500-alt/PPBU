@@ -2,10 +2,7 @@ from tkinter import *
 from tkinter import messagebox as mb
 from tkinter import ttk
 import requests
-import json
-import pprint
 
-from bottle import response
 
 
 def update_currency_label(event):
@@ -57,7 +54,7 @@ def exchange():
                 mb.showerror('Ошибка',
                             f'Валюта {target_code} не найдена')
         except Exception as er:
-            mb.showerror('Ошибка', er)
+            mb.showerror('Ошибка', str(er))
 
     else:
         mb.showwarning('Внимание', 'Введите все три валюты')
